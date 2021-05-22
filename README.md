@@ -1,1 +1,1 @@
-A bit of the backend of Seek and Pick
+Seek And Pick is an adventure puzzle game

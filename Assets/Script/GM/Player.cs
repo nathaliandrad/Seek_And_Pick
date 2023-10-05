@@ -1,142 +1,103 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    Rigidbody rigi;
-    Vector3 movement;
-    Transform cam;
-    float verti, hori, speed;
-    float mouseVerti, mouseHori, mouseSpeedHori, mouseSpeedVerti;
+    private Rigidbody rigi;
+    private Transform cam;
+    private Vector3 movement;
+    private float verti, hori, speed;
+    private float mouseVerti, mouseHori, mouseSpeedHori, mouseSpeedVerti;
 
     public AudioSource speaker;
     public AudioClip jumpSound;
 
-    public GameObject h1, h2, h3, h4, h5;
+    public GameObject[] healthIcons;
 
-    void Start()
+    private void Start()
+    {
+        InitializeVariables();
+        InitializeHealthIcons();
+    }
+
+    private void Update()
+    {
+        if (!PauseMenu.isGamePaused)
+        {
+            HandleInput();
+            HandleMouseInput();
+        }
+        PlayerJumpMovement();
+    }
+
+    private void InitializeVariables()
     {
         GM.jumpCount = GM.maxJump;
-        //health = 5;
-        //GM.health = 5;
-        GM.jumpCount = GM.maxJump;
         rigi = GetComponent<Rigidbody>();
-        cam  = Camera.main.transform;
-        
-        speed      = 6;
+        cam = Camera.main.transform;
+        speed = 6;
         mouseSpeedHori = 3;
         mouseSpeedVerti = 2;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void InitializeHealthIcons()
     {
-       
-        SettingHealth();
-        //keyboard input
+        foreach (var icon in healthIcons)
+        {
+            icon.SetActive(true);
+        }
+    }
+
+    private void HandleInput()
+    {
         verti = Input.GetAxis("Vertical");
-        hori  = Input.GetAxis("Horizontal");
-        //setting movement
+        hori = Input.GetAxis("Horizontal");
         movement.x = hori * speed;
         movement.y = rigi.velocity.y;
         movement.z = verti * speed;
-        //mouse input
-        mouseVerti = Input.GetAxis("Mouse Y");
-        mouseHori  = Input.GetAxis("Mouse X");
-  
         rigi.velocity = transform.TransformDirection(movement);
-        if (!PauseMenu.isGamePaused)
-        {
-            transform.Rotate(new Vector3(0, mouseHori * mouseSpeedHori, 0));
-            cam.Rotate(new Vector3(-mouseVerti * mouseSpeedVerti, 0, 0));
-        }
-        PlayerJumpMovement();
-
     }
-    public void PlayerJumpMovement()
+
+    private void HandleMouseInput()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        mouseVerti = Input.GetAxis("Mouse Y");
+        mouseHori = Input.GetAxis("Mouse X");
+        transform.Rotate(new Vector3(0, mouseHori * mouseSpeedHori, 0));
+        cam.Rotate(new Vector3(-mouseVerti * mouseSpeedVerti, 0, 0));
+    }
+
+    private void PlayerJumpMovement()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && GM.jumpCount > 0)
         {
-            if (GM.jumpCount > 0)
-            {
-                PlayerJump();
-            }
+            PlayerJump();
         }
     }
 
-    void PlayerJump()
+    private void PlayerJump()
     {
         speaker.PlayOneShot(jumpSound, 0.9f);
         GM.jumpCount -= 1;
         rigi.AddRelativeForce(new Vector3(0, 600, 0));
     }
 
-    public void OnCollisionEnter(Collision collision)
+    private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
             GM.health -= 1;
         }
-        if (collision.gameObject.CompareTag("Land"))
+        else if (collision.gameObject.CompareTag("Land"))
         {
             GM.jumpCount = GM.maxJump;
         }
     }
 
-
-    public void SettingHealth()
+    private void UpdateHealthIcons()
     {
-        if (GM.health == 5)
+        for (int i = 0; i < healthIcons.Length; i++)
         {
-            h5.SetActive(true);
-            h4.SetActive(true);
-            h3.SetActive(true);
-            h2.SetActive(true);
-            h1.SetActive(true);
+            healthIcons[i].SetActive(i < GM.health);
         }
-        if(GM.health == 4)
-        {
-            h5.SetActive(false);
-            h4.SetActive(true);
-            h3.SetActive(true);
-            h2.SetActive(true);
-            h1.SetActive(true);
-        }
-        if (GM.health == 3)
-        {
-            h5.SetActive(false);
-            h4.SetActive(false);
-            h3.SetActive(true);
-            h2.SetActive(true);
-            h1.SetActive(true);
-        }
-        if(GM.health == 2)
-        {
-            h5.SetActive(false);
-            h4.SetActive(false);
-            h3.SetActive(false);
-            h2.SetActive(true);
-            h1.SetActive(true);
-        }
-        if (GM.health == 1)
-        {
-            h5.SetActive(false);
-            h4.SetActive(false);
-            h3.SetActive(false);
-            h2.SetActive(false);
-            h1.SetActive(true);
-        }
-        if (GM.health == 0)
-        {
-            h5.SetActive(false);
-            h4.SetActive(false);
-            h3.SetActive(false);
-            h2.SetActive(false);
-            h1.SetActive(false);
-        }
-
     }
-
-
 }
